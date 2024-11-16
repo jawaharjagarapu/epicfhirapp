@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epic FHIR Patient Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script> <!-- Load FHIR client -->
+    <script src="app.js" defer></script> <!-- Load your app.js with defer -->
+    <noscript>
+        <div style="color: red; padding: 20px;">
+            Please enable JavaScript to use this application.
+        </div>
+    </noscript>
+</head>
+<body>
+    <div id="main">
+        <div id="login">
+            <h1>Epic FHIR Patient Portal</h1>
+            <p>Access your health information securely</p>
+            <button id="signInButton">Sign in with Epic</button>
+        </div>
+        <div id="patientInfo" style="display:none;" aria-hidden="true">
+            <h2>Patient Information</h2>
+            <div class="info-section" id="demographics">
+                <h3>Demographics</h3>
+                <div class="content" id="patientDetails"></div>
+            </div>
+            <h3>Medications</h3>
+            <ul id="medicationsList"></ul>
+            <h3>Lab Reports</h3>
+            <ul id="labReportsList"></ul>
+            <h3>Vital Signs</h3>
+            <ul id="vitalSignsList"></ul>
+            <button id="signOutButton" style="display:none">Sign Out</button>
+        </div>
+    </div>
+    <div id="loadingIndicator" style="display:none;" aria-hidden="true">Loading...</div> <!-- Loading Indicator -->
+    <div id="debug" style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
+        <h3>Debug Information:</h3>
+        <pre id="debugInfo"></pre>
+    </div>
+</body>
+</html>
