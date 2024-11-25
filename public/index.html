@@ -6,6 +6,94 @@
     <title>Epic FHIR Patient Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script> <!-- Load FHIR client -->
     <script src="app.js" defer></script> <!-- Load your app.js with defer -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        #main {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative; /* Added for positioning the button container */
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .button-container {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            margin-bottom: 20px;
+        }
+        .info-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .content {
+            margin: 10px 0;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 5px 0;
+            background-color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #loadingIndicator {
+            display: none;
+            font-weight: bold;
+            color: #007bff;
+        }
+        #debug {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #welcomeMessage {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+    </style>
     <noscript>
         <div style="color: red; padding: 20px;">
             Please enable JavaScript to use this application.
@@ -14,30 +102,114 @@
 </head>
 <body>
     <div id="main">
+        <div class="button-container">
+            <button id="signInButton">Sign in with Epic</button>
+            <button id="signOutButton" onclick="signOut()" style="display:none;">Sign Out</button>
+        </div>
+        <div id="welcomeMessage" style="display:none;"></div> <!-- Placeholder for welcome message -->
         <div id="login">
             <h1>Epic FHIR Patient Portal</h1>
             <p>Access your health information securely</p>
-            <button id="signInButton">Sign in with Epic</button>
         </div>
         <div id="patientInfo" style="display:none;" aria-hidden="true">
-            <h2>Patient Information</h2>
-            <div class="info-section" id="demographics">
+            <div class="button-container">
+                <div>
+                    <button id="btnDemographics" onclick="showSection('demographics')">Demographics</button>
+                    <button id="btnMedications" onclick="showSection('medications')">Medications</button>
+                    <button id="btnVitals" onclick="showSection('vitals')">Vitals</button>
+                    <button id="btnLabReports" onclick="showSection('labReports')">Lab Reports</button>
+                </div>
+            </div>
+            <div class="info-section" id="demographics" style="display:none;">
                 <h3>Demographics</h3>
                 <div class="content" id="patientDetails"></div>
             </div>
-            <h3>Medications</h3>
-            <ul id="medicationsList"></ul>
-            <h3>Lab Reports</h3>
-            <ul id="labReportsList"></ul>
-            <h3>Vital Signs</h3>
-            <ul id="vitalSignsList"></ul>
-            <button id="signOutButton" style="display:none">Sign Out</button>
+            <div class="info-section" id="medications" style="display:none;">
+                <h3>Medications</h3>
+                <table id="medicationsTable">
+                    <thead>
+                        <tr>
+                            <th>Medication</th>
+                            <th>Status</th>
+                            <th>Dosage</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicationsList"></tbody>
+                </table>
+            </div>
+            <div class="info-section" id="vitals" style="display:none;">
+                <h3>Vital Signs</h3>
+                <table id="vitalSignsTable">
+                    <thead>
+                        <tr>
+                            <th>Vital Sign</th>
+                            <th>Value</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vitalSignsList"></tbody>
+                </table>
+            </div>
+            <div class="info-section" id="labReports" style="display:none;">
+                <h3>Lab Reports</h3>
+                <table id="labReportsTable">
+                    <thead>
+                        <tr>
+                            <th>Lab Test</th>
+                            <th>Result</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="labReportsList"></tbody>
+                </table>
+            </div>
         </div>
     </div>
-    <div id="loadingIndicator" style="display:none;" aria-hidden="true">Loading...</div> <!-- Loading Indicator -->
-    <div id="debug" style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;">
+    <div id="loadingIndicator">Loading...</div> <!-- Loading Indicator -->
+    <div id="debug">
         <h3>Debug Information:</h3>
         <pre id="debugInfo"></pre>
     </div>
+    <script>
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById("demographics").style.display = "none";
+            document.getElementById("medications").style.display = "none";
+            document.getElementById("vitals").style.display = "none";
+            document.getElementById("labReports").style.display = "none";
+
+            // Show the selected section
+            document.getElementById(section).style.display = "block";
+        }
+
+        function signOut() {
+            // Clear session storage or any authentication data
+            sessionStorage.clear(); // Clear all session data
+            // Show the login section and hide patient info
+            document.getElementById("patientInfo").style.display = "none"; // Hide patient info
+            document.getElementById("login").style.display = "block"; // Show login section
+            document.getElementById("signInButton").style.display = "block"; // Show sign in button again
+            document.getElementById("signOutButton").style.display = "none"; // Hide sign out button
+            document.getElementById("welcomeMessage").style.display = "none"; // Hide welcome message
+            document.getElementById("debugInfo").textContent = ""; // Clear debug info
+        }
+
+        function signIn() {
+            // Your sign-in logic here
+            // After successful sign-in:
+            document.getElementById("signInButton").style.display = "none"; // Hide sign in button
+            document.getElementById("signOutButton").style.display = "block"; // Show sign out button
+            document.getElementById("patientInfo").style.display = "block"; // Show patient info
+        }
+
+        function displayDemographics(demographics) {
+            // Assuming demographics contains the patient's name
+            const patientName = demographics.name[0]?.text || 'User'; // Extract name
+            document.getElementById("welcomeMessage").textContent = `Hello ${patientName}, welcome to your healthcare portal!`;
+            document.getElementById("welcomeMessage").style.display = "block"; // Show welcome message
+        }
+    </script>
 </body>
 </html>
